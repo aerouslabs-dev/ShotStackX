@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    <aapt:attr name="android:drawable">
+        <vector
+            android:width="108dp"
+            android:height="108dp"
+            android:viewportWidth="108"
+            android:viewportHeight="108">
+
+            <!--
+                PRECISION ALIGNMENT & SCALING:
+                1. Geometric Center: The icon spans X:[1, 23] and Y:[1, 23].
+                   True Center X = (1 + 23) / 2 = 12.0.
+                   True Center Y = (1 + 23) / 2 = 12.0.
+                2. Scaling: Increased by another 30% to 2.15.
+                3. Translation: To align icon center (12, 12) to canvas center (54, 54):
+                   TranslateX = 54 - 12 = 42
+                   TranslateY = 54 - 12 = 42
+                4. Internal Lid Alignment: The lid (X: 1 to 15) and bin body (X: 2 to 14)
+                   are both perfectly centered at X=8.0.
+            -->
+            <group
+                android:name="autoDeleteGroup"
+                android:pivotX="12"
+                android:pivotY="12"
+                android:scaleX="2.15"
+                android:scaleY="2.15"
+                android:translateX="42"
+                android:translateY="42">
+
+                <!-- Animated element: The bin lid -->
+                <!-- Hinging from the bottom-center of the lid path (X:8, Y:4) -->
+                <group
+                    android:name="lidGroup"
+                    android:pivotX="8"
+                    android:pivotY="4">
+                    <path
+                        android:name="path_top"
+                        android:fillColor="@android:color/system_accent1_100"
+                        android:pathData="M15,2l-3.5,0l-1,-1l-5,0l-1,1l-3.5,0l0,2l14,0z" />
+                </group>
+
+                <!-- Static element: Trash can body -->
+                <path
+                    android:name="path_main"
+                    android:fillColor="@android:color/system_accent1_100"
+                    android:pathData="M16,9c-0.7,0 -1.37,0.1 -2,0.29V5H2v14h7.68c1.12,2.36 3.53,4 6.32,4c3.87,0 7,-3.13 7,-7C23,12.13 19.87,9 16,9zM16,21c-2.76,0 -5,-2.24 -5,-5s2.24,-5 5,-5s5,2.24 5,5S18.76,21 16,21z" />
+
+                <!-- Static element: The clock hand -->
+                <path
+                    android:name="path_hand"
+                    android:fillColor="@android:color/system_accent1_100"
+                    android:pathData="M16.5,12l-1.5,0l0,5l3.6,2.1l0.8,-1.2l-2.9,-1.7z" />
+            </group>
+        </vector>
+    </aapt:attr>
+
+    <!-- Lid Opening Animation -->
+    <target android:name="lidGroup">
+        <aapt:attr name="android:animation">
+            <set>
+                <set>
+                    <objectAnimator
+                        android:duration="400"
+                        android:propertyName="translateY"
+                        android:valueFrom="0"
+                        android:valueTo="-3"
+                        android:interpolator="@android:anim/decelerate_interpolator" />
+                    <objectAnimator
+                        android:duration="400"
+                        android:propertyName="rotation"
+                        android:valueFrom="0"
+                        android:valueTo="-20"
+                        android:interpolator="@android:anim/decelerate_interpolator" />
+                </set>
+                <set>
+                    <objectAnimator
+                        android:duration="400"
+                        android:startOffset="600"
+                        android:propertyName="translateY"
+                        android:valueFrom="-3"
+                        android:valueTo="0"
+                        android:interpolator="@android:anim/bounce_interpolator" />
+                    <objectAnimator
+                        android:duration="400"
+                        android:startOffset="600"
+                        android:propertyName="rotation"
+                        android:valueFrom="-20"
+                        android:valueTo="0"
+                        android:interpolator="@android:anim/bounce_interpolator" />
+                </set>
+            </set>
+        </aapt:attr>
+    </target>
+
+    <!-- Color Pulse -->
+    <target android:name="path_main">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="500"
+                    android:propertyName="fillColor"
+                    android:valueFrom="@android:color/system_accent1_100"
+                    android:valueTo="@android:color/system_accent1_300" />
+                <objectAnimator
+                    android:duration="500"
+                    android:startOffset="500"
+                    android:propertyName="fillColor"
+                    android:valueFrom="@android:color/system_accent1_300"
+                    android:valueTo="@android:color/system_accent1_100" />
+            </set>
+        </aapt:attr>
+    </target>
+
+</animated-vector>

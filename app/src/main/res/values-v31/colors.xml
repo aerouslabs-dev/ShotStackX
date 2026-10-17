@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Material You Dynamic Launcher Icon Colors
+      Background: The darkest shade (900) from the user's wallpaper palette for maximum contrast.
+      Foreground: A very light shade (100) to make the auto_delete icon pop.
+    -->
+    <color name="ic_launcher_background">#F7F3ED</color>
+    <color name="ic_launcher_foreground_color">#E0785D</color>
+</resources>

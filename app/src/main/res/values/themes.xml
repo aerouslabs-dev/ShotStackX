@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+      Splash screen theme for ShotStackX (Aerous Labs).
+      Uses Theme.SplashScreen for AndroidX compat, but overrides the
+      platform-level android:windowSplashScreenBackground to follow
+      the system's dynamic Material You color (via DeviceDefault's colorBackground).
+      colorPrimary / colorOnPrimary are defined here so the launcher icon
+      can resolve them on all API levels. Android 12+ overrides them with
+      wallpaper-derived values for Material You icon theming.
+    -->
+    <style name="Theme.ShotStackX" parent="Theme.SplashScreen">
+        <!-- Material You icon colors (fallback values for pre-Android 12) -->
+        <item name="colorPrimary">#E0785D</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+
+        <!-- Icon shown in the splash circle -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <!-- Dynamic Material You background for splash icon -->
+        <item name="windowSplashScreenIconBackgroundColor">#FFFDF9</item>
+        <item name="windowSplashScreenAnimationDuration">400</item>
+        <!-- After splash, Compose takes over theming -->
+        <item name="postSplashScreenTheme">@style/Theme.ShotStackX.Main</item>
+        <!--
+          Override the platform splash background to use the system's
+          colorBackground (which is Material You dynamic on Android 12+).
+          The android: prefix targets the real system splash screen on API 31+.
+        -->
+        <item name="android:windowSplashScreenBackground">#F7F3ED</item>
+    </style>
+
+    <!-- Post-splash theme: DeviceDefault picks up Material You dynamic colors -->
+    <style name="Theme.ShotStackX.Main" parent="android:Theme.DeviceDefault.Light.NoActionBar" />
+
+</resources>

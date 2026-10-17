@@ -1,0 +1,40 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/app/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+.android-testing-skills-source/
+.agent/
+
+# Signing
+*.jks
+*.keystore
+keystore.properties
+
+# Local, project-only agent skills (not committed/shared)
+.skills/
+
+# Profiling traces
+*.perfetto-trace
+
+# Gradle and Android generated files
+.gradle/
+**/.gradle/
+**/build/
+
+# Local machine settings
+local.properties
+
+# IDE files
+.idea/

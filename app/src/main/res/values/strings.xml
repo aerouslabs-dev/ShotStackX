@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ShotStackX</string>
+    <string name="brand_name">Aerous Labs</string>
+    <string name="app_tagline">Screenshot cleanup, automated.</string>
+</resources>

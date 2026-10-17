@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Adaptive icon background — system overrides with dynamic color on API 31+ -->
+    <color name="ic_launcher_background">#F7F3ED</color>
+    <color name="ic_launcher_foreground_color">#E0785D</color>
+</resources>

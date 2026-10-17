@@ -1,0 +1,209 @@
+package com.aerouslabs.shotstackx.ui.screens.home.gesture
+
+import android.os.Build
+import android.view.HapticFeedbackConstants
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.Velocity
+import kotlinx.coroutines.CoroutineScope
+
+/**
+ * Types of haptic feedback emitted during the pull-to-reveal gesture flow.
+ */
+enum class DragHapticType {
+    /** Subtle 40px step tick vibration while dragging. */
+    DragTick,
+
+    /** Haptic feedback when pull crosses the threshold to trigger. */
+    ThresholdActivate,
+
+    /** Haptic feedback when pull drops back below the threshold. */
+    ThresholdDeactivate,
+
+    /** Distinct click feedback when the pull-to-kept flow is completed. */
+    CompletionClick
+}
+
+/**
+ * Encapsulates the pull-to-reveal gesture logic for revealing "Kept" screenshots.
+ *
+ * Uses a rubber-band damped pull that resists harder the further you drag,
+ * with Material 3 haptic drag ticks every 40px and a spring-back animation on release.
+ */
+class NestedScrollPullToRevealState(
+    private val coroutineScope: CoroutineScope,
+    private val performHaptic: (DragHapticType) -> Unit,
+    private val keptListSize: () -> Int
+) {
+    var showKept by mutableStateOf(false)
+
+    // Direct float state updated synchronously during touch dragging to avoid 120Hz coroutine dispatch overhead
+    private var rawPullOffset by mutableFloatStateOf(0f)
+
+    // Animatable used strictly for spring-back release flings
+    private val releaseAnim = Animatable(0f)
+
+    var isReleasing by mutableStateOf(false)
+
+    private var isHapticTriggered by mutableStateOf(false)
+    private var lastTickStep = 0
+    private val tickStepDistance = 40f
+
+    // True once user has scrolled all the way to the bottom of pending+achieved
+    private var isAtBottomFn: (() -> Boolean)? = null
+
+    private val pullThreshold = 380f
+    private val maxPull = 520f
+
+    val pullOffset: Float
+        get() = if (isReleasing) releaseAnim.value else rawPullOffset
+
+    val nestedScrollConnection: NestedScrollConnection = object : NestedScrollConnection {
+        override fun onPostScroll(
+            consumed: Offset,
+            available: Offset,
+            source: NestedScrollSource
+        ): Offset {
+            if (isReleasing) isReleasing = false
+            if (!showKept && keptListSize() > 0 && available.y < 0 &&
+                (isAtBottomFn?.invoke() == true) && source == NestedScrollSource.UserInput
+            ) {
+                val rawDelta = -available.y
+                val resistance = kotlin.math.sqrt((rawPullOffset / maxPull).coerceAtLeast(0f) + 0.001f)
+                val damped = rawDelta * (1f - resistance * 0.6f)
+                val target = (rawPullOffset + damped).coerceIn(0f, maxPull)
+
+                rawPullOffset = target
+
+                val currentStep = (target / tickStepDistance).toInt()
+                if (target < pullThreshold && currentStep != lastTickStep && target > 0f) {
+                    lastTickStep = currentStep
+                    performHaptic(DragHapticType.DragTick)
+                }
+
+                if (target >= pullThreshold && !isHapticTriggered) {
+                    isHapticTriggered = true
+                    performHaptic(DragHapticType.ThresholdActivate)
+                }
+
+                return Offset(0f, available.y)
+            }
+            return Offset.Zero
+        }
+
+        override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+            if (!showKept && keptListSize() > 0 && rawPullOffset > 0f &&
+                available.y > 0f && source == NestedScrollSource.UserInput
+            ) {
+                val consumed = available.y.coerceAtMost(rawPullOffset)
+                val target = rawPullOffset - consumed
+                rawPullOffset = target
+
+                val currentStep = (target / tickStepDistance).toInt()
+                if (target < pullThreshold && currentStep != lastTickStep && target > 0f) {
+                    lastTickStep = currentStep
+                    performHaptic(DragHapticType.DragTick)
+                }
+
+                if (target < pullThreshold && isHapticTriggered) {
+                    isHapticTriggered = false
+                    performHaptic(DragHapticType.ThresholdDeactivate)
+                }
+
+                return Offset(0f, consumed)
+            }
+            return Offset.Zero
+        }
+
+        override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+            if (!showKept && keptListSize() > 0 && rawPullOffset > 0f) {
+                val initialOffset = rawPullOffset
+
+                if (initialOffset >= pullThreshold) {
+                    showKept = true
+                    performHaptic(DragHapticType.CompletionClick)
+                }
+
+                releaseAnim.snapTo(initialOffset)
+                isReleasing = true
+                rawPullOffset = 0f
+
+                releaseAnim.animateTo(
+                    targetValue = 0f,
+                    initialVelocity = -available.y,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    )
+                )
+                isReleasing = false
+                isHapticTriggered = false
+                lastTickStep = 0
+            }
+            return Velocity.Zero
+        }
+    }
+
+    fun setIsAtBottomProvider(provider: () -> Boolean) {
+        isAtBottomFn = provider
+    }
+
+    fun toggleShowKept() {
+        showKept = !showKept
+    }
+
+    fun dismissKept() {
+        showKept = false
+    }
+}
+
+/**
+ * Remember a [NestedScrollPullToRevealState] scoped to this composition.
+ */
+@Composable
+fun rememberPullToRevealState(keptListSize: () -> Int): NestedScrollPullToRevealState {
+    val scope = rememberCoroutineScope()
+    val view = LocalView.current
+    return remember(keptListSize) {
+        NestedScrollPullToRevealState(
+            coroutineScope = scope,
+            performHaptic = { hapticType ->
+                when (hapticType) {
+                    DragHapticType.DragTick -> {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                            view.performHapticFeedback(HapticFeedbackConstants.SEGMENT_TICK)
+                        } else {
+                            view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                        }
+                    }
+                    DragHapticType.ThresholdActivate -> {
+                        view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+                    }
+                    DragHapticType.ThresholdDeactivate -> {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                            view.performHapticFeedback(HapticFeedbackConstants.GESTURE_THRESHOLD_DEACTIVATE)
+                        } else {
+                            view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                        }
+                    }
+                    DragHapticType.CompletionClick -> {
+                        view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+                    }
+                }
+            },
+            keptListSize = keptListSize
+        )
+    }
+}

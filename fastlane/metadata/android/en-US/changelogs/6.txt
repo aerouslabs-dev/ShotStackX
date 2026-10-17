@@ -1,0 +1,1 @@
+Package renamed — Application ID changed from com.example.screenshotjanitor to dev.sj010.ssjanitor.
