@@ -52,6 +52,9 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
 
       - name: Run Lint
         run: ./gradlew lint --build-cache --parallel

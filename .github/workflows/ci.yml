@@ -31,7 +31,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+      
       - name: Run Lint
         run: ./gradlew lint --build-cache --parallel
 
