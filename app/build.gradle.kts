@@ -47,12 +47,14 @@ android {
     }
 
     signingConfigs {
-        if (resolvedKeystoreFile != null) {
-            create("release") {
+        create("release") {
+            if (resolvedKeystoreFile != null) {
                 storeFile = resolvedKeystoreFile
                 storePassword = signingProp("storePassword")
                 keyAlias = signingProp("keyAlias")
                 keyPassword = signingProp("keyPassword")
+            } else {
+                initWith(getByName("debug"))
             }
         }
     }
@@ -65,11 +67,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = if (resolvedKeystoreFile != null) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

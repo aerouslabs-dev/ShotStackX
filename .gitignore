@@ -28,13 +28,3 @@ keystore.properties
 # Profiling traces
 *.perfetto-trace
 
-# Gradle and Android generated files
-.gradle/
-**/.gradle/
-**/build/
-
-# Local machine settings
-local.properties
-
-# IDE files
-.idea/
